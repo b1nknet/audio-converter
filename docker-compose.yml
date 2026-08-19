@@ -1,0 +1,23 @@
+services:
+  audio-converter:
+    build: .
+    container_name: audio-converter
+    restart: unless-stopped
+    environment:
+      TZ: "${TZ:-Asia/Seoul}"
+      SOURCE_DIRECTORY: /music/source
+      OUTPUT_DIRECTORY: /music/output
+      # Five-field cron expression. Default: every day at 03:00.
+      CRON_SCHEDULE: "${CRON_SCHEDULE:-0 3 * * *}"
+      # Run once immediately after the container starts, then follow CRON_SCHEDULE.
+      RUN_ON_START: "${RUN_ON_START:-true}"
+      # Examples: "--format alac" or "-s --format mp3". Blank converts all formats.
+      CONVERTER_ARGS: "${CONVERTER_ARGS:-}"
+    volumes:
+      - type: bind
+        source: "${HOST_SOURCE_DIRECTORY:-./music_original}"
+        target: /music/source
+        read_only: true
+      - type: bind
+        source: "${HOST_OUTPUT_DIRECTORY:-./music}"
+        target: /music/output
