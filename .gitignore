@@ -3,3 +3,8 @@ __pycache__
 .conda
 .vscode
 .env
+
+*.wav
+*.flac
+*.m4a
+*.mp3

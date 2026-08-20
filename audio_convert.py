@@ -165,7 +165,15 @@ def wav_id3v23_metadata(path: Path) -> dict[str, str]:
             value = _decode_id3_text(content, encoding)
             if value:
                 metadata[ID3_TEXT_TAGS.get(frame_id, frame_id)] = value
-    return metadata
+    # A few WAV encoders place UTF-16 terminator bytes inside text values.
+    # Windows rejects a subprocess argument containing NUL, and a leading BOM
+    # is not part of the tag's displayed value. Remove both before using these
+    # values in ffmpeg's ``-metadata key=value`` arguments.
+    return {
+        key.replace("\x00", "").lstrip("\ufeff"): value.replace("\x00", "").lstrip("\ufeff")
+        for key, value in metadata.items()
+        if key.replace("\x00", "").lstrip("\ufeff")
+    }
 
 
 def conversion_command(
@@ -191,6 +199,10 @@ def conversion_command(
     for stream_index in mapped:
         command += ["-map", f"0:{stream_index}"]
     command += ["-map_metadata", "0", "-map_chapters", "0"]
+    # Some WAV files carry both a standard date and a legacy/custom YEAR tag.
+    # Keeping both makes tag editors such as Mp3tag display ``2020\\2020``.
+    # The standard date tag is retained; the duplicate YEAR key is cleared.
+    command += ["-metadata", "YEAR="]
     command += FORMATS[output_format]["audio_args"]
     # Copy artwork byte-for-byte.  It is mapped only when it is an attached picture.
     if len(mapped) > 1:
@@ -316,9 +328,10 @@ def main() -> int:
             try:
                 run_checked(command)
                 converted += 1
-            except subprocess.CalledProcessError as error:
+            except (subprocess.CalledProcessError, OSError, ValueError) as error:
                 failed += 1
-                log_progress(start_time, track_number, len(input_paths), label, f"FAILED ({error.returncode})", args.silent)
+                return_code = getattr(error, "returncode", "unable to start")
+                log_progress(start_time, track_number, len(input_paths), label, f"FAILED ({return_code})", args.silent)
 
     if not args.silent:
         print(f"{elapsed_timestamp(start_time)} Done: {converted} converted, {skipped} skipped, {failed} failed.")
