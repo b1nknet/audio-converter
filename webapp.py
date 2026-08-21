@@ -333,8 +333,8 @@ function renderGrid() {
       <div data-slot="${i}"><div class="placeholder">♪</div></div>
       <div class="meta">
         <span class="title">${esc(a.album)}</span>
-        <span class="sub">${esc(a.artist)}${a.year ? ' · ' + esc(a.year) : ''}</span>
-        <span class="sub">${a.total_tracks} tracks</span>
+        <span class="sub">${esc(a.artist)}</span>
+        <span class="sub">${a.year ? esc(a.year) + ' · ' : ''}${a.total_tracks} tracks</span>
       </div>
     </div>`).join('');
   albums.forEach((a, i) => {
