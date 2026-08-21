@@ -1,8 +1,27 @@
 services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: audio-converter-tailscale
+    restart: unless-stopped
+    environment:
+      # Auth key from https://login.tailscale.com/admin/settings/keys.
+      # Leave blank to log in manually with 'docker compose exec tailscale tailscale up'.
+      TS_AUTHKEY: "${TS_AUTHKEY:-}"
+      TS_HOSTNAME: "${TS_HOSTNAME:-audio-converter}"
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "true"
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+
   audio-converter:
     build: .
     container_name: audio-converter
     restart: unless-stopped
+    # Share the Tailscale sidecar's network namespace. The web interface is
+    # then reachable only through the tailnet, with no ports published.
+    network_mode: "service:tailscale"
+    depends_on:
+      - tailscale
     environment:
       TZ: "${TZ:-Asia/Seoul}"
       SOURCE_DIRECTORY: /music/source
@@ -21,3 +40,6 @@ services:
       - type: bind
         source: "${HOST_OUTPUT_DIRECTORY:-./music}"
         target: /music/output
+
+volumes:
+  tailscale_state:

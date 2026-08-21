@@ -16,8 +16,10 @@ ${CRON_SCHEDULE} /bin/sh /app/run-converter.sh
 EOF
 
 if [ "$RUN_ON_START" = "true" ]; then
-    /bin/sh /app/run-converter.sh
+    /bin/sh /app/run-converter.sh &
 fi
 
 echo "Schedule installed: ${CRON_SCHEDULE} (TZ=${TZ:-UTC})"
+
+python /app/webapp.py >> /proc/1/fd/1 2>&1 &
 exec crond -f -l 2 -L /dev/stdout

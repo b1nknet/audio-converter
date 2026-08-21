@@ -63,6 +63,20 @@ While it runs, the converter shows elapsed time, the current track out of the to
 
 Use `-s` or `--silent` to display only elapsed time and track progress. Short flags may be combined, so `-ods` is equivalent to `-o -d -s`.
 
+## Web interface
+
+The Docker image also serves a small Flask web interface on port 8000 inside the container. It lists every album folder found under the source directory with its track count and provides a button that starts a full-library conversion immediately, streaming the converter's progress log into the page. Only one conversion runs at a time; the button is disabled while a scheduled or manual conversion is in progress.
+
+The port is not published to the host or the internet. Instead, a `tailscale/tailscale` sidecar container shares its network namespace with the converter (`network_mode: "service:tailscale"`), so the interface is reachable only from devices on your Tailscale network at `http://audio-converter:8000` (MagicDNS) or `http://<tailscale-ip>:8000`.
+
+To log in, either set `TS_AUTHKEY` in `.env` with a key from <https://login.tailscale.com/admin/settings/keys>, or run:
+
+```bash
+docker compose exec tailscale tailscale up
+```
+
+and open the printed login URL in a browser. Login state persists in the `tailscale_state` volume across container restarts.
+
 ## Docker scheduling
 
 The included `docker-compose.yml` runs the converter on a five-field cron schedule. It contains FFmpeg, Python, and the script; your music stays on the host and is mounted into the container. By default it converts the project's `music_original` folder into `music`, runs once at container startup, and then runs daily at 03:00 in `Asia/Seoul`.
