@@ -315,10 +315,15 @@ function esc(value) {
   }[c]));
 }
 
+function discCount(album) {
+  const numbered = album.discs.filter(d => d.disc !== null).length;
+  return numbered || (album.discs.length ? 1 : 0);
+}
+
 function renderTable() {
-  const rows = albums.flatMap(a => a.discs.map(d =>
+  const rows = albums.map(a =>
     `<tr title="${esc(a.path)}"><td>${esc(a.artist)}</td><td>${esc(a.year || '')}</td>` +
-    `<td>${esc(a.album)}</td><td>${esc(d.disc || '—')}</td><td class="num">${d.tracks}</td></tr>`));
+    `<td>${esc(a.album)}</td><td>${discCount(a)}</td><td class="num">${a.total_tracks}</td></tr>`);
   document.getElementById('albums').innerHTML = rows.join('');
 }
 
