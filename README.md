@@ -65,7 +65,7 @@ Use `-s` or `--silent` to display only elapsed time and track progress. Short fl
 
 ## Web interface
 
-The Docker image also serves a small Flask web interface on port 8000 inside the container. It lists every album folder found under the source directory with its track count and provides a button that starts a full-library conversion immediately, streaming the converter's progress log into the page. Only one conversion runs at a time; the button is disabled while a scheduled or manual conversion is in progress.
+The Docker image also serves a small Flask web interface on port 8000 inside the container. It scans the source library using the `Artist/[Year] Album` layout with optional `Disc N` subfolders and shows every album either as a table (artist, year, album, disc, track count) or as a grid of album cards. Covers come from an image file in the album folder (`cover.jpg`, `folder.png`, ...), falling back to the artwork embedded in the audio files; extracted images are cached under `/tmp/converter-covers` (override with `COVER_CACHE_DIRECTORY`). The page also provides a button that starts a full-library conversion immediately, streaming the converter's progress log into the page. Only one conversion runs at a time; the button is disabled while a scheduled or manual conversion is in progress.
 
 The port is not published to the host or the internet. Instead, a `tailscale/tailscale` sidecar container shares its network namespace with the converter (`network_mode: "service:tailscale"`), so the interface is reachable only from devices on your Tailscale network at `http://audio-converter:8000` (MagicDNS) or `http://<tailscale-ip>:8000`.
 

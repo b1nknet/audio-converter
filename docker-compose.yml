@@ -40,6 +40,9 @@ services:
       - type: bind
         source: "${HOST_OUTPUT_DIRECTORY:-./music}"
         target: /music/output
+      # Persist extracted album covers across container restarts.
+      - covers_cache:/tmp/converter-covers
 
 volumes:
   tailscale_state:
+  covers_cache:
